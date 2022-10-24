@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/MarkerCluster.css">
+        <link rel="stylesheet" href="css/MarkerCluster.Default.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body{
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #map {
+            width: 100%;
+            height: 92%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                border: 1px solid #ddd;
+            }
+
+            th, td {
+                text-align: left;
+                padding: 8px;
+            }
+
+            tr:nth-child(even){background-color: #eee9e9
+            }
+
+            th {
+                background-color: rgba(13, 161, 79, 0.91);
+                color: white;
+            }
+            /* Style the top navigation bar */
+            .navbar {
+                overflow: hidden;
+                background-color: #333;
+            }
+
+            /* Style the navigation bar links */
+            .navbar a {
+                float: left;
+                display: block;
+                color: white;
+                text-align: center;
+                padding: 14px 20px;
+                text-decoration: none;
+            }
+            /* Right-aligned link */
+            .navbar a.right {
+                float: right;
+            }
+
+            /* Change color on hover */
+            .navbar a:hover {
+                background-color: #ddd;
+                color: black;
+            }
+        </style>
+        <title></title>
+    </head>
+    <body>
+    <div class="navbar">
+        <a href="#">Antioquia</a>
+        <a href="#">Centro</a>
+        <a href="#">Costa</a>
+        <a href="#">Eje Cafereto</a>
+        <a href="#">Oriente</a>
+        <a href="#">Santander</a>
+        <a href="#">Tolima/Huila</a>
+        <a href="#">Valle</a>
+        <a href="#" class="right">Colombia</a>
+    </div>
+
+        <div id="map">
+
+        </div>
+
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script><script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet-svg-shape-markers.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="js/leaflet.markercluster.js"></script>
+        <script src="data/BricksBello_3.js"></script>
+        <script src="data/Puntofinalesbello_4.js"></script>
+        <script src="data/ZonadeAntioquia_1.js"></script>
+        <script src="data/Mun_Z_Antiq_0.js"></script>
+        <script>
+
+
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: 'rgba(0,255,234,0)',
+              });
+              highlightLayer.setStyle({
+                fillColor: 'rgba(0,81,255,0)',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:1
+        }).fitBounds([[6.311993368354975,-75.57761030268175],[6.3399603008099765,-75.54372800834203]]);
+        var hash = new L.Hash(map);
+
+        map.setView(
+            {lat: 6.795746, lng: -75.189290},
+            8)
+        // @ts-ignore
+        const originalInitTile = L.GridLayer.prototype._initTile;
+        L.GridLayer.include({
+            _initTile: function (tile) {
+                originalInitTile.call(this, tile);
+                const tileSize = this.getTileSize();
+                tile.style.width = tileSize.x + 1 + 'px';
+                tile.style.height = tileSize.y + 1 + 'px';
+            }
+        });
+
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0]
+        .className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_ESRIStandard_0');
+        map.getPane('pane_ESRIStandard_0').style.zIndex = 400;
+        var layer_ESRIStandard_0 = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            pane: 'pane_ESRIStandard_0',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_ESRIStandard_0;
+        map.addLayer(layer_ESRIStandard_0);
+        map.createPane('pane_ESRISatellite_1');
+        map.getPane('pane_ESRISatellite_1').style.zIndex = 401;
+        var layer_ESRISatellite_1 = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            pane: 'pane_ESRISatellite_1',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_ESRISatellite_1;
+        map.addLayer(layer_ESRISatellite_1);
+        map.createPane('pane_ESRITopo_2');
+        map.getPane('pane_ESRITopo_2').style.zIndex = 402;
+        var layer_ESRITopo_2 = L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+            pane: 'pane_ESRITopo_2',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_ESRITopo_2;
+        map.addLayer(layer_ESRITopo_2);
+        function pop_BricksBello_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Número de Brick</th>\
+                        <td>' + (feature.properties['Name'] !== null ? autolinker.link(feature.properties['Name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_BricksBello_3_0() {
+            return {
+                pane: 'pane_BricksBello_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(114,155,111,0.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_BricksBello_3');
+        map.getPane('pane_BricksBello_3').style.zIndex = 403;
+        map.getPane('pane_BricksBello_3').style['mix-blend-mode'] = 'normal';
+        var layer_BricksBello_3 = new L.geoJson(json_BricksBello_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_BricksBello_3',
+            layerName: 'layer_BricksBello_3',
+            pane: 'pane_BricksBello_3',
+            onEachFeature: pop_BricksBello_3,
+            style: style_BricksBello_3_0,
+
+        });
+        bounds_group.addLayer(layer_BricksBello_3);
+        map.addLayer(layer_BricksBello_3);
+        function pop_Puntofinalesbello_4(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<div>' +
+                '<table>\n' +
+                '  <tr>\n' +
+                '    <th>ID</th>\n' +
+                '    <td>' + (feature.properties['ID'] !== null ? autolinker.link(feature.properties['ID'].toLocaleString()) : '')+'</td>\n' +
+                '  </tr>\n' +
+                '  <tr>\n' +
+                '    <th>Sucursal</th>\n' +
+                '    <td>' + (feature.properties['Sucursal'] !== null ? autolinker.link(feature.properties['Sucursal'].toLocaleString()) : '')+'</td>\n' +
+                '  </tr>\n' +
+                '  <tr>\n' +
+                '    <th>Departamento</th>\n' +
+                '    <td>' + (feature.properties['Departamen'] !== null ? autolinker.link(feature.properties['Departamen'].toLocaleString()) : '')+'</td>\n' +
+                '  </tr>\n' +
+                '  <tr>\n' +
+                '    <th>Ciudad</th>\n' +
+                '    <td>' + (feature.properties['Ciudad'] !== null ? autolinker.link(feature.properties['Ciudad'].toLocaleString()) : '')+'</td>\n' +
+                '  </tr>\n' +
+                '  <tr>\n' +
+                '    <th>Dirección</th>\n' +
+                '    <td>' + (feature.properties['Direccion'] !== null ? autolinker.link(feature.properties['Direccion'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n' +
+                '<tr>\n' +
+                '    <th>Regional</th>\n' +
+                '    <td>' + (feature.properties['Regional'] !== null ? autolinker.link(feature.properties['Regional'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n'+
+                '<tr>\n' +
+                '    <th>Fecha de Apertura</th>\n' +
+                '    <td>' + (feature.properties['Fecha de A'] !== null ? autolinker.link(feature.properties['Fecha de A'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n'+
+                '<tr>\n' +
+                '    <th>Tipo de Tienda</th>\n' +
+                '    <td>' + (feature.properties['Tipo de Ti'] !== null ? autolinker.link(feature.properties['Tipo de Ti'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n'+
+                '<tr>\n' +
+                '    <th>Venta Drogeria Promedio<br>Ultimos 3 Meses</th>\n' +
+                '    <td>' + (feature.properties['Venta Drog'] !== null ? autolinker.link(feature.properties['Venta Drog'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n'+
+                '<tr>\n' +
+                '    <th>Ticket Promedio<br>Ulitmos 3 meses</th>\n' +
+                '    <td>' + (feature.properties['Ticket Pro'] !== null ? autolinker.link(feature.properties['Ticket Pro'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n'+
+                '<tr>\n' +
+                '    <th>Área Primer Piso</th>\n' +
+                '    <td>' + (feature.properties['Area Prim'] !== null ? autolinker.link(feature.properties['Area Prim'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n'+
+                '<tr>\n' +
+                '    <th>Area Exhibición</th>\n' +
+                '    <td>' + (feature.properties['Area Exhib'] !== null ? autolinker.link(feature.properties['Area Exhib'].toLocaleString()) : '')+'</td>\n' +
+                '</tr>\n'
+                '</table>'
+                '</div>'
+
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Puntofinalesbello_4_0() {
+            return {
+                pane: 'pane_Puntofinalesbello_4',
+                radius: 10.0,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(31,144,46,1.0)',
+                interactive: true,
+            }
+        }
+        var myIcon = L.icon({
+         //  iconUrl: 'add/marcador.png',
+         //  iconSize: [23, 23],
+         //  iconAnchor: [1, 1],
+          //  iconUrl: 'add/MCV.svg',
+           // iconSize: [200, 200],
+          //  iconAnchor: [1, 1],
+
+            iconUrl: 'add/MCV_1.png',
+            iconSize: [28, 32],
+            iconAnchor: [0, 20],
+            popupAnchor: [12, 2]
+        });
+        map.createPane('pane_Puntofinalesbello_4');
+        map.getPane('pane_Puntofinalesbello_4').style.zIndex = 404;
+        map.getPane('pane_Puntofinalesbello_4').style['mix-blend-mode'] = 'normal';
+        var layer_Puntofinalesbello_4 = new L.geoJson(json_Puntofinalesbello_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Puntofinalesbello_4',
+            layerName: 'layer_Puntofinalesbello_4',
+            pane: 'pane_Puntofinalesbello_4',
+            onEachFeature: pop_Puntofinalesbello_4,
+            pointToLayer: function (feature, latlng) {
+                // var context = {
+                //     feature: feature,
+                //     variables: {}
+                // };
+               // return L.shapeMarker(latlng, {icon: myIcon}), style_Puntofinalesbello_4_0(feature));
+                return L.marker(latlng, {icon: myIcon});
+            },
+        });
+        var cluster_Puntofinalesbello_4 = new L.MarkerClusterGroup({showCoverageOnHover: false,
+            spiderfyDistanceMultiplier: 2});
+        cluster_Puntofinalesbello_4.addLayer(layer_Puntofinalesbello_4);
+
+        bounds_group.addLayer(layer_Puntofinalesbello_4);
+        cluster_Puntofinalesbello_4.addTo(map);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        function pop_ZonadeAntioquia_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_CCDGO'] !== null ? autolinker.link(feature.properties['DPTO_CCDGO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_CNMBR'] !== null ? autolinker.link(feature.properties['DPTO_CNMBR'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_ANO_C'] !== null ? autolinker.link(feature.properties['DPTO_ANO_C'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_ACT_A'] !== null ? autolinker.link(feature.properties['DPTO_ACT_A'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_NAREA'] !== null ? autolinker.link(feature.properties['DPTO_NAREA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_CSMBL'] !== null ? autolinker.link(feature.properties['DPTO_CSMBL'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_VGNC'] !== null ? autolinker.link(feature.properties['DPTO_VGNC'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Zona'] !== null ? autolinker.link(feature.properties['Zona'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Numero_Z'] !== null ? autolinker.link(feature.properties['Numero_Z'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_ZonadeAntioquia_1_0() {
+            return {
+                pane: 'pane_ZonadeAntioquia_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(225,89,137,0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_ZonadeAntioquia_1');
+        map.getPane('pane_ZonadeAntioquia_1').style.zIndex = 402;
+        map.getPane('pane_ZonadeAntioquia_1').style['mix-blend-mode'] = 'normal';
+        var layer_ZonadeAntioquia_1 = new L.geoJson(json_ZonadeAntioquia_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_ZonadeAntioquia_1',
+            layerName: 'layer_ZonadeAntioquia_1',
+            pane: 'pane_ZonadeAntioquia_1',
+            //onEachFeature: pop_ZonadeAntioquia_1,
+            style: style_ZonadeAntioquia_1_0,
+        });
+        bounds_group.addLayer(layer_ZonadeAntioquia_1);
+        map.addLayer(layer_ZonadeAntioquia_1);
+        function pop_Mun_Z_Antiq_0(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_CCDGO'] !== null ? autolinker.link(feature.properties['DPTO_CCDGO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_CCDGO'] !== null ? autolinker.link(feature.properties['MPIO_CCDGO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_CDPMP'] !== null ? autolinker.link(feature.properties['MPIO_CDPMP'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DPTO_CNMBR'] !== null ? autolinker.link(feature.properties['DPTO_CNMBR'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_CNMBR'] !== null ? autolinker.link(feature.properties['MPIO_CNMBR'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_CRSLC'] !== null ? autolinker.link(feature.properties['MPIO_CRSLC'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_NAREA'] !== null ? autolinker.link(feature.properties['MPIO_NAREA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_CSMBL'] !== null ? autolinker.link(feature.properties['MPIO_CSMBL'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_VGNC'] !== null ? autolinker.link(feature.properties['MPIO_VGNC'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['MPIO_TIPO'] !== null ? autolinker.link(feature.properties['MPIO_TIPO'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Leng'] !== null ? autolinker.link(feature.properties['Shape_Leng'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Shape_Area'] !== null ? autolinker.link(feature.properties['Shape_Area'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_Mun_Z_Antiq_0_0() {
+            return {
+                pane: 'pane_Mun_Z_Antiq_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(164,113,88,0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Mun_Z_Antiq_0');
+        map.getPane('pane_Mun_Z_Antiq_0').style.zIndex = 402;
+        map.getPane('pane_Mun_Z_Antiq_0').style['mix-blend-mode'] = 'normal';
+        var layer_Mun_Z_Antiq_0 = new L.geoJson(json_Mun_Z_Antiq_0, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Mun_Z_Antiq_0',
+            layerName: 'layer_Mun_Z_Antiq_0',
+            pane: 'pane_Mun_Z_Antiq_0',
+            onEachFeature: pop_Mun_Z_Antiq_0,
+            style: style_Mun_Z_Antiq_0_0,
+        });
+        bounds_group.addLayer(layer_Mun_Z_Antiq_0);
+        map.addLayer(layer_Mun_Z_Antiq_0);
+
+
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var baseMaps = {};
+        L.control.layers(baseMaps,{'Puntos Antioquia': cluster_Puntofinalesbello_4,
+            'Bricks Bello': layer_BricksBello_3,
+            'Zona de Antioquia': layer_ZonadeAntioquia_1,
+            "Mapa Topográfico": layer_ESRITopo_2,
+            "Mapa Satelital": layer_ESRISatellite_1,
+            "Mapa Calles": layer_ESRIStandard_0,
+            'Municipios Zonas Antioquia': layer_Mun_Z_Antiq_0,
+        }).addTo(map);
+        setBounds();
+        </script>
+    </body>
+</html>

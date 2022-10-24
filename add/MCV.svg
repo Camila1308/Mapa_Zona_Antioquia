@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW 2020 (64-Bit) -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="215.9mm" height="279.4mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 21590 27940"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .fil1 {fill:#FEFEFE}
+    .fil2 {fill:#2B8B41}
+    .fil0 {fill:url(#id0)}
+   ]]>
+  </style>
+  <linearGradient id="id0" gradientUnits="userSpaceOnUse" x1="3913.65" y1="4544.3" x2="6327.8" y2="4544.3">
+   <stop offset="0" style="stop-opacity:1; stop-color:#AFD697"/>
+   <stop offset="1" style="stop-opacity:1; stop-color:#2C8833"/>
+  </linearGradient>
+ </defs>
+ <g id="Capa_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <g id="_2052402805040">
+   <path class="fil0" d="M5117.33 2798.04c668.52,0 1210.47,550.84 1210.47,1230.32 0,679.48 -846.22,1852.09 -1184.02,2262.19 -403.93,-449.79 -1230.13,-1471.5 -1230.13,-2150.98 0,-679.48 535.16,-1341.53 1203.68,-1341.53z"/>
+   <ellipse class="fil1" cx="5132.81" cy="3988.67" rx="948.13" ry="939.28"/>
+   <polygon class="fil2" points="4545.54,3780.48 4945.54,3780.48 4945.54,3383.61 5345.54,3383.61 5345.54,3780.48 5745.54,3780.48 5745.54,4180.48 5345.54,4180.48 5345.54,4580.48 4945.54,4580.48 4945.54,4180.48 4545.54,4180.48 "/>
+  </g>
+ </g>
+</svg>
